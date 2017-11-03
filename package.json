@@ -1,0 +1,42 @@
+{
+  "ava": {
+    "babel": {
+      "presets": [
+        "latest"
+      ]
+    },
+    "require": [
+      "babel-register",
+      "babel-polyfill"
+    ]
+  },
+  "author": "Erwan Ledoux",
+  "dependencies": {
+    "immutable": "^3.8.1",
+    "lodash.merge": "^4.6.0",
+    "lodash.mergewith": "^4.6.0",
+    "lodash.values": "^4.3.0",
+    "pluralize": "3.0.0",
+    "reselect": "^2.5.1"
+  },
+  "description": "In the framework of transactions, all tools for backend and frontend: constants, description, definition, query",
+  "devDependencies": {
+    "ava": "^0.18.2",
+    "babel-cli": "^6.24.1",
+    "babel-preset-latest": "^6.24.1",
+    "nodemon": "^1.11.0",
+    "node-sass": "^4.5.3",
+    "standard": "^7.0.1",
+    "transactions-tests": "latest"
+  },
+  "license": "MIT",
+  "main": "lib/index.js",
+  "name": "transactions-tools-isomorphic",
+  "scripts": {
+    "compile": "babel --presets latest -d lib/ src/",
+    "test": "ava -v",
+    "dev": "npm run dev",
+    "dev-watch": "nodemon --watch src --exec \"npm run compile\""
+  },
+  "version": "0.0.1"
+}
