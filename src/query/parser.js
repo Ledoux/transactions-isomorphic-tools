@@ -1,44 +1,7 @@
 import values from 'lodash.values'
 
-import { JOINS,
-  OR,
-  PARSE,
-  WHERE
-} from './constants'
-
-export function getQueriedElements (elements, query) {
-  if (!query) {
-    return []
-  }
-  if (!elements) {
-    console.warn('There were no elements to filter here')
-    return []
-  }
-  if (query.id) {
-    // Put it into an array
-    // because we want to return
-    // always that type here
-    const foundElement = elements.find(element => element.id === query.id)
-    return (foundElement && [foundElement]) || []
-  } else {
-    // parse
-    const fromRequestQuery = getFromRequestQuery(query)
-    // unpack
-    const filteringKeys = Object.keys(fromRequestQuery)
-      .filter(key => key !== 'id')
-    const filteringValues = filteringKeys.map(key => fromRequestQuery[key])
-    // Here we do a generic filter :
-    // each item in the filter checks
-    // if their value matches the one in the entity (at the corresponding key)
-    const filteredElements = elements.filter(element => {
-      const isAcceptedElement = getIsAcceptedElement(element, filteringKeys, filteringValues)
-      return isAcceptedElement
-    })
-    // return
-    return filteredElements
-  }
-}
-
+import { getFromDemandQuery } from './demand'
+import { getFromRequestQuery } from './request'
 
 export function getIsAcceptedElement (element, filteringKeys, filteringValues) {
   // look for any that is a false condition
@@ -57,7 +20,7 @@ export function getIsAcceptedElement (element, filteringKeys, filteringValues) {
           if (orMatch[1].length === 0) {
             return !andExpression.split(orSeparator)
               .some(orExpression => {
-                const query = getQuery(orExpression)
+                const query = getFromDemandQuery(orExpression)
                 return filter(element, Object.keys(query), values(query))
               })
           } else if (orMatch[1]){
@@ -102,7 +65,7 @@ export function getIsAcceptedElement (element, filteringKeys, filteringValues) {
               queryString = filterOrQueryString
               subElements = [joinElement]
             }
-            const query = getQuery(queryString)
+            const query = getFromDemandQuery(queryString)
             const directFilteredElements = filter(subElements,
                   { query })
             return directFilteredElements.length === 0
@@ -151,90 +114,35 @@ export function getIsAcceptedElement (element, filteringKeys, filteringValues) {
   })
 }
 
-function getQuery (queryString) {
-  const query = {}
-  queryString.split('&')
-    .forEach(item => {
-      const chunks = item.split(':')
-      if (chunks.length > 1) {
-        query[chunks[0]] = chunks.slice(1).join(':')
-      }
-    })
-  return query
-}
-
-export function getFromRequestQuery (query = {}) {
-  const fromRequestQuery = {}
-  Object.keys(query)
-    .forEach(key => {
-      if (key === JOINS) {
-        return
-      }
-      const value = query[key]
-      const parseMatch = value.match && value.match(/_PARSE_(.*)/)
-      let fromRequestValue = value
-      if (parseMatch && parseMatch[1]) {
-        const notEqualMatch = parseMatch[1]
-        const object = JSON.parse(notEqualMatch)
-        const objectKeys = Object.keys(object)
-        if (objectKeys[0] === '$ne') {
-          const notEqualValue = object[objectKeys[0]]
-          fromRequestValue = `_not_${notEqualValue}`
-        }
-      } else {
-        const inValue = value['$in']
-        if (inValue) {
-          fromRequestValue = `_has_${inValue}`
-        } else {
-          const ninValue = value['$nin']
-          if (ninValue) {
-            fromRequestValue = `_hasnt_${ninValue.join(',')}`
-          }
-        }
-      }
-      fromRequestQuery[key] = fromRequestValue
-    })
-  return fromRequestQuery
-}
-
-export function getQueryString (query) {
-  return Object.keys(query)
-    .map(key => {
-      const value = query[key]
-      // special parse
-      const valueString = typeof value !== 'string'
-      ? `${PARSE}${JSON.stringify(value)}`
-      : value
-      // return
-      return `${key}=${valueString}`
-    })
-    .join('&')
-}
-
-export function getReplacedQueryString (queryString) {
-  return queryString.replace(/&/g, '|')
-    .replace(/=/g, '=>')
-}
-
-export function encodeSubQuery (option) {
-  const { collectionName,
-    query
-  } = option
-  let queryString = collectionName
-  ? collectionName
-  : ''
-  if (query && Object.keys(query).length > 0) {
-    const subQueryString = getQueryString(query)
-    const replacedQueryString = getReplacedQueryString(subQueryString)
-    queryString = collectionName
-    ? `${queryString}${WHERE}${replacedQueryString}`
-    : replacedQueryString
+export function getQueriedElements (elements, query) {
+  if (!query) {
+    return []
   }
-  return queryString
-}
-
-export function encodeQuery (options) {
-  return options.map((option, index) =>
-    `${index}=${encodeSubQuery(option)}`
-  ).join('&')
+  if (!elements) {
+    console.warn('There were no elements to filter here')
+    return []
+  }
+  if (query.id) {
+    // Put it into an array
+    // because we want to return
+    // always that type here
+    const foundElement = elements.find(element => element.id === query.id)
+    return (foundElement && [foundElement]) || []
+  } else {
+    // parse
+    const fromRequestQuery = getFromRequestQuery(query)
+    // unpack
+    const filteringKeys = Object.keys(fromRequestQuery)
+      .filter(key => key !== 'id')
+    const filteringValues = filteringKeys.map(key => fromRequestQuery[key])
+    // Here we do a generic filter :
+    // each item in the filter checks
+    // if their value matches the one in the entity (at the corresponding key)
+    const filteredElements = elements.filter(element => {
+      const isAcceptedElement = getIsAcceptedElement(element, filteringKeys, filteringValues)
+      return isAcceptedElement
+    })
+    // return
+    return filteredElements
+  }
 }

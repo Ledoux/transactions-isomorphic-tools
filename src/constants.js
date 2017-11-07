@@ -1,7 +1,12 @@
 import camelCase from 'lodash.camelcase'
 
+export const AND = '_and_'
 export const ALL = '_all_'
+export const ALSO = ' '
 export const DELETE = '_delete_'
+export const DOT = '.'
+export const EQUAL = ':'
+export const IN = '_in_'
 export const IS_ALL_DEEP_JOINS = '_is_all_deep_joins_'
 export const IS_ALL_JOINS = '_is_all_joins_'
 export const JOIN = '_join_'
