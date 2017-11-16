@@ -1,5 +1,7 @@
 import camelCase from 'lodash.camelcase'
 
+export const absoluteUrlTest = /^(?:https?:)?(?:\/\/)?([^\/\?]+)/
+
 export const AND = '_and_'
 export const ALL = '_all_'
 export const ALSO = ' '
@@ -12,6 +14,7 @@ export const IS_ALL_JOINS = '_is_all_joins_'
 export const JOIN = '_join_'
 export const JOINS = '_joins_'
 export const LIMIT = '_limit_'
+export const MAX_DEPTH = '_max_depth_'
 export const NEW = '_new_'
 export const OR = '_or_'
 export const PARSE = '_parse_'

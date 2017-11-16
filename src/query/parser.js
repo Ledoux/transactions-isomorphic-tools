@@ -115,6 +115,7 @@ export function getIsAcceptedElement (element, filteringKeys, filteringValues) {
 }
 
 export function getQueriedElements (elements, query) {
+  // check
   if (!query) {
     return []
   }
@@ -129,20 +130,18 @@ export function getQueriedElements (elements, query) {
     const foundElement = elements.find(element => element.id === query.id)
     return (foundElement && [foundElement]) || []
   } else {
-    // parse
+    // adapt
     const fromRequestQuery = getFromRequestQuery(query)
     // unpack
     const filteringKeys = Object.keys(fromRequestQuery)
       .filter(key => key !== 'id')
     const filteringValues = filteringKeys.map(key => fromRequestQuery[key])
-    // Here we do a generic filter :
-    // each item in the filter checks
-    // if their value matches the one in the entity (at the corresponding key)
-    const filteredElements = elements.filter(element => {
+    // parser
+    const queriedElements = elements.filter(element => {
       const isAcceptedElement = getIsAcceptedElement(element, filteringKeys, filteringValues)
       return isAcceptedElement
     })
     // return
-    return filteredElements
+    return queriedElements
   }
 }
