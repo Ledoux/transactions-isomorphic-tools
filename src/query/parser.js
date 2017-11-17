@@ -114,7 +114,7 @@ export function getIsAcceptedElement (element, filteringKeys, filteringValues) {
   })
 }
 
-export function getQueriedElements (elements, query) {
+export function filterOrFind (elements, query, methodName = 'filter') {
   // check
   if (!query) {
     return []
@@ -128,7 +128,9 @@ export function getQueriedElements (elements, query) {
     // because we want to return
     // always that type here
     const foundElement = elements.find(element => element.id === query.id)
-    return (foundElement && [foundElement]) || []
+    return methodName === 'filter'
+      ? (foundElement && [foundElement]) || []
+      : foundElement
   } else {
     // adapt
     const fromRequestQuery = getFromRequestQuery(query)
@@ -136,12 +138,12 @@ export function getQueriedElements (elements, query) {
     const filteringKeys = Object.keys(fromRequestQuery)
       .filter(key => key !== 'id')
     const filteringValues = filteringKeys.map(key => fromRequestQuery[key])
-    // parser
-    const queriedElements = elements.filter(element => {
+    // parser (can be array or element)
+    const resultVariable = elements[methodName](element => {
       const isAcceptedElement = getIsAcceptedElement(element, filteringKeys, filteringValues)
       return isAcceptedElement
     })
     // return
-    return queriedElements
+    return resultVariable
   }
 }
