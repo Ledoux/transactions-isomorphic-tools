@@ -33,9 +33,12 @@ export function getDemand (config = {}) {
 }
 
 export function getQueryFromDemand (demand) {
-  console.log('demand', demand)
   // init
   const query = {}
+  // check
+  if (!demand) {
+    return query
+  }
   // AND
   const andChunks = demand.split(AND)
   if (andChunks.length > 1) {
