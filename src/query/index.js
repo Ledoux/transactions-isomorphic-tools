@@ -1,9 +1,10 @@
 import { getDemand, getQueryFromDemand } from './demand'
 import { AND, ALSO } from '../constants'
 
+export * from './after'
 export * from './demand'
-export * from './parser'
-export * from './request'
+export * from './filter'
+export * from './split'
 export * from './url'
 
 export function getQuery (config = {}) {

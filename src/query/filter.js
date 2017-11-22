@@ -1,8 +1,8 @@
 import values from 'lodash.values'
 
-import { inTest, joinTest, OR } from '../constants'
 import { getFromDemandQuery } from './demand'
-import { getFromRequestQuery } from './request'
+import { splitQuery } from './split'
+import { inTest, joinTest, OR } from '../constants'
 
 export function getIsInAcceptedElement (element, key, value) {
   const inMatch = key.match(inTest)
@@ -86,17 +86,38 @@ export function filterOrFind (elements, query, config = {}) {
       : foundElement
   } else {
     // adapt
-    const fromRequestQuery = getFromRequestQuery(query)
+    const { after, join, look } = splitQuery(query)
     // unpack
-    const filteringKeys = Object.keys(fromRequestQuery)
+    const filteringKeys = Object.keys(look)
       .filter(key => key !== 'id')
-    const filteringValues = filteringKeys.map(key => fromRequestQuery[key])
+    const filteringValues = filteringKeys.map(key => look[key])
     // parser (can be array or element)
-    const resultVariable = elements[methodName](element => {
+    let resultVariable = elements[methodName](element => {
       const isAcceptedElement = getIsAcceptedElement(element,
         filteringKeys, filteringValues, { getState, schema })
       return isAcceptedElement
     })
+    // after
+    if (methodName === 'filter') {
+      const { sort, limit, skip } = after
+      if (sort) {
+        Object.keys(sort)
+          .forEach(key => resultVariable.sort((element, nextElement) => {
+              const isNextHigher = nextElement[key] > element[key]
+              return sort[key] === 1
+              // ascending
+              ? (isNextHigher ? 1 : -1)
+              // descending
+              : (isNextHigher ? -1 : 1)
+            }))
+      }
+      if (limit) {
+        resultVariable = resultVariable.slice(0, limit)
+      }
+      if (skip) {
+        resultVariable = resultVariable.slice(skip)
+      }
+    }
     // return
     return resultVariable
   }
