@@ -1,3 +1,4 @@
+import get from 'lodash.get'
 import values from 'lodash.values'
 
 import { DOT,
@@ -12,9 +13,9 @@ import { constantTestsByName } from '../regexps'
 const { inTest, joinTest } = constantTestsByName
 
 export function getIsNotInAcceptedElement (element, key, value) {
-  if (value && value[NOT_IN]) {
-    const subElementOrArray = value[NOT_IN]
-    const elementArray = element[key]
+  const elementArray = element[key]
+  const subElementOrArray = value && value[NOT_IN]
+  if (elementArray && subElementOrArray) {
     return elementArray && Array.isArray(subElementOrArray)
       ? subElementOrArray.every(subElement => !elementArray.includes(subElement))
       : !elementArray.includes(subElementOrArray)
@@ -25,13 +26,15 @@ export function getIsInAcceptedElement (element, key, value) {
   const inMatch = key.match(inTest)
   const inKey = inMatch && inMatch[1]
   if (inKey) {
-    return element[inKey].toLowerCase().includes(value)
-  } else if (value && value[IN]) {
-    const subElementOrArray = value[IN]
+    return get(element, inKey).toLowerCase().includes(value)
+  } else {
     const elementArray = element[key]
-    return elementArray && Array.isArray(subElementOrArray)
-      ? subElementOrArray.every(subElement => elementArray.includes(subElement))
-      : elementArray.includes(subElementOrArray)
+    const subElementOrArray = value && value[IN]
+    if (elementArray && subElementOrArray) {
+      return elementArray && Array.isArray(subElementOrArray)
+        ? subElementOrArray.every(subElement => elementArray.includes(subElement))
+        : elementArray.includes(subElementOrArray)
+    }
   }
 }
 
@@ -44,16 +47,24 @@ export function getIsJoinAcceptedElement (element, key, value, config) {
   if (almostJoinKey) {
     const keys = Object.keys(value)
     const { itemsByKey, schemasByJoinKey } = schema
-    const joinKey = itemsByKey[almostJoinKey].key
-    const joinId = element[joinKey]
+    const item = itemsByKey[almostJoinKey] || itemsByKey[`${almostJoinKey}ById`]
+    const joinKey = item.key
+    const joinVariable = element[joinKey]
     const joinCollectionName = schemasByJoinKey[joinKey].collectionName
-    const joinElement = getState()[`${joinCollectionName}ById`][joinId]
-    return getIsSpecificAcceptedElement(joinElement, keys[0], value[keys[0]], config)
+    const collection = getState()[`${joinCollectionName}ById`]
+    if (!Array.isArray(joinVariable)) {
+      const joinElement = collection[joinVariable]
+      return getIsSpecificAcceptedElement(joinElement, keys[0], value[keys[0]], config)
+    } else {
+      const joinElements = joinVariable.map(id => collection[id])
+      return joinElements.some(joinElement =>
+        getIsSpecificAcceptedElement(joinElement, keys[0], value[keys[0]], config))
+    }
   }
 }
 
 export function getIsEqualAcceptedElement (element, key, value) {
-  return element[key] === value
+  return get(element, key) === value
 }
 
 const getIsAcceptedElementSpecificMethods = [
@@ -90,6 +101,10 @@ export function getIsAcceptedElement (element, filteringKeys, filteringValues, c
 export function filterOrFind (elements, query, config = {}) {
   // unpack
   const { getState, schema } = config
+  let isAfter = config.isAfter
+  if (typeof config.isAfter === 'undefined') {
+    isAfter = true
+  }
   const methodName = config.methodName || 'filter'
   // check
   if (!query) {
@@ -122,7 +137,7 @@ export function filterOrFind (elements, query, config = {}) {
       return isAcceptedElement
     })
     // after
-    if (methodName === 'filter') {
+    if (methodName === 'filter' && isAfter) {
       const { sort, limit, skip } = after
       if (sort) {
         Object.keys(sort)

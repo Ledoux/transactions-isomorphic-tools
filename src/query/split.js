@@ -2,6 +2,7 @@ import camelCase from 'lodash.camelcase'
 
 import { afterConstants } from './after'
 import { joinConstants } from './join'
+import { MODE } from '../constants'
 
 export const camelCasesByConstant = {}
 afterConstants.concat(joinConstants).forEach(constant => {
@@ -19,7 +20,8 @@ export function splitQuery (query) {
         after[camelCasesByConstant[key]] = value
       } else if (joinConstants.includes(key)) {
         joiner[camelCasesByConstant[key]] = value
-      } else {
+      } else if (key !== MODE) {
+        // don't set MODE
         look[key] = value
       }
     })

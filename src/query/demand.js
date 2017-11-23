@@ -6,6 +6,8 @@ import { AND,
   JOIN,
   OR
 } from '../constants'
+import { constantTestsByName } from '../regexps'
+const { joinTest } = constantTestsByName
 
 export function getFromDemandQuery (queryString) {
   const query = {}
@@ -64,8 +66,8 @@ export function getQueryFromDemand (demand) {
     } else {
       // JOINS
       const dotChunks = key.split(DOT)
-      if (dotChunks.length > 1) {
-        query[`${JOIN}${dotChunks[0]}`] = getQueryFromDemand(
+      if (dotChunks.length > 1 && joinTest.test(dotChunks[0])) {
+        query[dotChunks[0]] = getQueryFromDemand(
           `${dotChunks.slice(1).join(DOT)}${EQUAL}${value}`
         )
       } else {
