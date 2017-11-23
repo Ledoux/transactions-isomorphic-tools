@@ -2,6 +2,7 @@ import { AND,
   ALSO,
   DOT,
   EQUAL,
+  IN,
   JOIN,
   OR
 } from '../constants'
@@ -58,22 +59,18 @@ export function getQueryFromDemand (demand) {
       const or = {}
       query[OR] = or
       orChunks.forEach(orChunk => {
-        // init
-        let orKey = orChunk
-        let orValue = value
-        // JOIN
-        const dotChunks = orChunk.split(DOT)
-        if (dotChunks.length > 1) {
-          orKey = `${JOIN}${dotChunks[0]}`
-          orValue = getQueryFromDemand(
-            `${dotChunks.slice(1).join(DOT)}${EQUAL}${value}`
-          )
-        }
-        // set
-        or[orKey] = orValue
+        Object.assign(or, getQueryFromDemand(`${orChunk}${EQUAL}${value}`))
       })
     } else {
-      query[key] = value
+      // JOINS
+      const dotChunks = key.split(DOT)
+      if (dotChunks.length > 1) {
+        query[`${JOIN}${dotChunks[0]}`] = getQueryFromDemand(
+          `${dotChunks.slice(1).join(DOT)}${EQUAL}${value}`
+        )
+      } else {
+        query[key] = value
+      }
     }
   }
   // return

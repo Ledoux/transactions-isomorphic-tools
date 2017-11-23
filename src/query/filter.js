@@ -1,14 +1,37 @@
 import values from 'lodash.values'
 
+import { DOT,
+  IN,
+  JOIN,
+  NOT_IN,
+  OR
+} from '../constants'
 import { getFromDemandQuery } from './demand'
 import { splitQuery } from './split'
-import { inTest, joinTest, OR } from '../constants'
+import { constantTestsByName } from '../regexps'
+const { inTest, joinTest } = constantTestsByName
+
+export function getIsNotInAcceptedElement (element, key, value) {
+  if (value && value[NOT_IN]) {
+    const subElementOrArray = value[NOT_IN]
+    const elementArray = element[key]
+    return elementArray && Array.isArray(subElementOrArray)
+      ? subElementOrArray.every(subElement => !elementArray.includes(subElement))
+      : !elementArray.includes(subElementOrArray)
+  }
+}
 
 export function getIsInAcceptedElement (element, key, value) {
   const inMatch = key.match(inTest)
   const inKey = inMatch && inMatch[1]
   if (inKey) {
     return element[inKey].toLowerCase().includes(value)
+  } else if (value && value[IN]) {
+    const subElementOrArray = value[IN]
+    const elementArray = element[key]
+    return elementArray && Array.isArray(subElementOrArray)
+      ? subElementOrArray.every(subElement => elementArray.includes(subElement))
+      : elementArray.includes(subElementOrArray)
   }
 }
 
@@ -19,12 +42,12 @@ export function getIsJoinAcceptedElement (element, key, value, config) {
   const joinMatch = key.match(joinTest)
   const almostJoinKey = joinMatch && joinMatch[1]
   if (almostJoinKey) {
+    const keys = Object.keys(value)
     const { itemsByKey, schemasByJoinKey } = schema
     const joinKey = itemsByKey[almostJoinKey].key
     const joinId = element[joinKey]
     const joinCollectionName = schemasByJoinKey[joinKey].collectionName
     const joinElement = getState()[`${joinCollectionName}ById`][joinId]
-    const keys = Object.keys(value)
     return getIsSpecificAcceptedElement(joinElement, keys[0], value[keys[0]], config)
   }
 }
@@ -34,9 +57,10 @@ export function getIsEqualAcceptedElement (element, key, value) {
 }
 
 const getIsAcceptedElementSpecificMethods = [
+  getIsNotInAcceptedElement,
   getIsInAcceptedElement,
-  getIsJoinAcceptedElement,
-  getIsEqualAcceptedElement
+  getIsEqualAcceptedElement,
+  getIsJoinAcceptedElement
 ]
 
 export function getIsSpecificAcceptedElement (...args) {

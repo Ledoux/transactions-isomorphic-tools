@@ -12,7 +12,6 @@
   },
   "author": "Erwan Ledoux",
   "dependencies": {
-    "immutable": "^3.8.1",
     "lodash.camelcase": "^4.3.0",
     "lodash.isequal": "^4.5.0",
     "lodash.merge": "^4.6.0",
@@ -40,5 +39,5 @@
     "dev": "npm run dev",
     "dev-watch": "nodemon --watch src --exec \"npm run compile\""
   },
-  "version": "0.0.5"
+  "version": "0.0.6"
 }

@@ -1,6 +1,3 @@
-import { fromJS,
-  isImmutable
-} from 'immutable'
 import isEqual from 'lodash.isequal'
 import merge from 'lodash.merge'
 import mergeWith from 'lodash.mergewith'
