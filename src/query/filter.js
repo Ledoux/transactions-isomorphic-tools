@@ -1,7 +1,8 @@
 import get from 'lodash.get'
 import values from 'lodash.values'
 
-import { DOT,
+import { AND,
+  DOT,
   IN,
   JOIN,
   NOT_IN,
@@ -85,11 +86,18 @@ export function getIsAcceptedElement (element, filteringKeys, filteringValues, c
   // AND CONDITION all must be fullfilled
   return filteringKeys.every((filteringKey, index) => {
     const filteringValue = filteringValues[index]
-    if (filteringKey === OR) {
+    if (filteringKey === AND) {
+      return filteringValue.every(subFilteringValue => {
+        const key = Object.keys(subFilteringValue)[0]
+        // RECURSIVE
+        return getIsAcceptedElement(element, [key],
+          [subFilteringValue[key]], config)
+      })
+    } else if (filteringKey === OR) {
       // OR CONDITION one is enough
       return Object.keys(filteringValue).some(key => {
-        // SPECIFICS
-        return getIsSpecificAcceptedElement(element, key, filteringValue[key], config)
+        // RECURSIVE
+        return getIsAcceptedElement(element, [key], [filteringValue[key]], config)
       })
     } else {
       // SPECIFICS

@@ -11,7 +11,7 @@ afterConstants.concat(joinConstants).forEach(constant => {
 
 export function splitQuery (query) {
   const after = {}
-  const joiner = {}
+  const lookup = {}
   const look = {}
   query && Object.keys(query)
     .forEach(key => {
@@ -19,11 +19,11 @@ export function splitQuery (query) {
       if (afterConstants.includes(key)) {
         after[camelCasesByConstant[key]] = value
       } else if (joinConstants.includes(key)) {
-        joiner[camelCasesByConstant[key]] = value
+        lookup[camelCasesByConstant[key]] = value
       } else if (key !== MODE) {
         // don't set MODE
         look[key] = value
       }
     })
-  return { after, joiner, look }
+  return { after, look, lookup }
 }
