@@ -10,7 +10,6 @@ class TransactionsSchema {
         id: null
       },
       model: {
-        indexedItemKeys: [],
         items: []
       },
       types: {
@@ -33,11 +32,8 @@ class TransactionsSchema {
     }
     const { items } = this.model
     // indexed items
-    const indexedItemKeys = items.filter(({ isIndex }) => isIndex)
-      .map(({ key }) => key)
-    indexedItemKeys.forEach(indexedItemKey =>
-      !this.model.indexedItemKeys.includes(indexedItemKey)
-        && this.model.indexedItemKeys.push(indexedItemKey))
+    this.model.indexingItems = items.filter(({ getIndexingQuery, isIndex }) =>
+      getIndexingQuery || isIndex)
     // We create here an object that accumulates
     // what should be the key binding to the id / ids array
     // for each child schemas key
