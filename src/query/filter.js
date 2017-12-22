@@ -55,11 +55,11 @@ export function getIsJoinAcceptedElement (element, key, value, config) {
     const collection = getState()[`${joinCollectionName}ById`]
     if (!Array.isArray(joinVariable)) {
       const joinElement = collection[joinVariable]
-      return getIsSpecificAcceptedElement(joinElement, keys[0], value[keys[0]], config)
+      return joinElement && getIsSpecificAcceptedElement(joinElement, keys[0], value[keys[0]], config)
     } else {
       const joinElements = joinVariable.map(id => collection[id])
       return joinElements.some(joinElement =>
-        getIsSpecificAcceptedElement(joinElement, keys[0], value[keys[0]], config))
+        joinElement && getIsSpecificAcceptedElement(joinElement, keys[0], value[keys[0]], config))
     }
   }
 }
